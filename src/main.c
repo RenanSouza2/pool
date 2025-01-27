@@ -1,7 +1,5 @@
 #include <stdio.h>
 
-#include "../lib/example/header.h"
-
 int main(int argc, char** argv)
 {
     printf("\nTemplate repo");
