@@ -16,9 +16,9 @@
 
 pool_t pool_global;
 
-void pool_intialize(int size)
+void pool_intialize(int size, int clean_frequency)
 {
-    pool_global = (pool_t){size > sizeof(handler_p) ? size : sizeof(handler_p), NULL};
+    pool_global = (pool_t){size, clean_frequency, 0, 0, NULL};
 }
 
 void pool_clean()

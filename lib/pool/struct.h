@@ -5,7 +5,7 @@
 
 STRUCT(pool)
 {
-    int size;
+    int size, clean_frequency, ticks, count;
     handler_p h;
 };
 

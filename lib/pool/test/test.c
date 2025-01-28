@@ -62,7 +62,7 @@ void test_pool()
 int main() 
 {
     setbuf(stdout, NULL);
-    pool_intialize(8);
+    pool_intialize(8, 1e6);
     test_pool();
     printf("\n\n\tTest successful\n\n");
     return 0;

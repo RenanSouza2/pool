@@ -3,7 +3,7 @@
 
 #include "../../utils/struct.h"
 
-void pool_intialize(int size);
+void pool_intialize(int size, int clean_frequency);
 void pool_clean();
 
 handler_p palloc();
