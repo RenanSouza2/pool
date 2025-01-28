@@ -31,6 +31,21 @@ void pool_clean()
     }
 }
 
+void pool_clean_half()
+{
+    int clean = pool_global.count / 2;
+    pool_global.count -= clean;
+
+    handler_p h = pool_global.h;
+    for(int i=0; i<clean; i++)
+    {
+        handler_p h_aux = NEXT(h);
+        free(h);
+        h = h_aux;
+    }
+    pool_global.h = h;
+}
+
 
 
 handler_p palloc()
@@ -51,4 +66,8 @@ void pfree(handler_p h)
 {
     NEXT(h) = pool_global.h;
     pool_global.h = h;
+
+    pool_global.ticks++;
+    if(pool_global.ticks == pool_global.clean_frequency)
+        pool_clean_half();
 }

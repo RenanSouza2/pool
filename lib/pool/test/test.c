@@ -59,7 +59,7 @@ void test_pool()
 }
 
 
-int main() 
+int main()
 {
     setbuf(stdout, NULL);
     pool_intialize(8, 1e6);
