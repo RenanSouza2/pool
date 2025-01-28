@@ -12,8 +12,6 @@
 
 #endif
 
-#define NEXT(POINTER) (*((handler_p*)(POINTER)))
-
 
 
 pool_t pool_global;
@@ -27,7 +25,6 @@ void pool_clean()
 {
     for(handler_p h = pool_global.h; h;)
     {
-        printf("\nAAAA");
         handler_p h_aux = NEXT(h);
         free(h);
         h = h_aux;
