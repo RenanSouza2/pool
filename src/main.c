@@ -71,7 +71,7 @@ int main(int argc, char** argv)
     printf("\nTemplate repo");
 
     srand(time(NULL));
-    pool_intialize(8);
+    pool_intialize(8, 1e6);
     // test(1e10, palloc, pfree);
     test(1e10, my_malloc, free);
     
@@ -87,3 +87,6 @@ int main(int argc, char** argv)
 
 // 5:30.24
 // 8:40.08
+
+// 5:27.24
+
