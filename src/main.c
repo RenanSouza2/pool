@@ -4,7 +4,7 @@
 #include <limits.h>
 #include <time.h>
 
-#include "../lib/pool/header.h"
+#include "../lib/pool_1/header.h"
 #include "../utils/assert.h"
 
 STRUCT(keep)
@@ -71,7 +71,8 @@ int main(int argc, char** argv)
     printf("\nTemplate repo");
 
     srand(time(NULL));
-    pool_intialize(8, 1e6);
+    // pool_1_intialize(8, 1e6);
+    pool_1_intialize(8);
     // test(1e10, palloc, pfree);
     test(1e10, my_malloc, free);
     

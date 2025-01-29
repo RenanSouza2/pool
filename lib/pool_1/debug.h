@@ -5,7 +5,7 @@
 
 #ifdef DEBUG
 
-extern pool_t pool_global;
+extern pool_1_t pool_1_global;
 
 #endif
 

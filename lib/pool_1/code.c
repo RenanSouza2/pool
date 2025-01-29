@@ -14,16 +14,16 @@
 
 
 
-pool_t pool_global;
+pool_1_t pool_1_global;
 
-void pool_intialize(int size)
+void pool_1_intialize(int size)
 {
-    pool_global = (pool_t){size > sizeof(handler_p) ? size : sizeof(handler_p), NULL};
+    pool_1_global = (pool_1_t){size > sizeof(handler_p) ? size : sizeof(handler_p), NULL};
 }
 
-void pool_clean()
+void pool_1_clean()
 {
-    for(handler_p h = pool_global.h; h;)
+    for(handler_p h = pool_1_global.h; h;)
     {
         handler_p h_aux = NEXT(h);
         free(h);
@@ -33,22 +33,22 @@ void pool_clean()
 
 
 
-handler_p palloc()
+handler_p palloc_1()
 {
-    if(pool_global.h)
+    if(pool_1_global.h)
     {
-        handler_p h = pool_global.h;
-        pool_global.h = NEXT(h);
+        handler_p h = pool_1_global.h;
+        pool_1_global.h = NEXT(h);
         return h;
     }
 
-    handler_p h = calloc(1, pool_global.size);
+    handler_p h = calloc(1, pool_1_global.size);
     assert(h);
     return h;
 }
 
-void pfree(handler_p h)
+void pfree_1(handler_p h)
 {
-    NEXT(h) = pool_global.h;
-    pool_global.h = h;
+    NEXT(h) = pool_1_global.h;
+    pool_1_global.h = h;
 }

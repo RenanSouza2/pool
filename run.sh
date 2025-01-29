@@ -1,3 +1,3 @@
 make clean
 make build
-./src/main.o $@
+time ./src/main.o $@
