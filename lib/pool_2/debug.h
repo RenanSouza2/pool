@@ -1,11 +1,11 @@
-#ifndef __POOL_DEBUG_H__
-#define __POOL_DEBUG_H__
+#ifndef __POOL_2_DEBUG_H__
+#define __POOL_2_DEBUG_H__
 
 #include "struct.h"
 
 #ifdef DEBUG
 
-extern pool_t pool_global;
+extern pool_2_t pool_2_global;
 
 #endif
 

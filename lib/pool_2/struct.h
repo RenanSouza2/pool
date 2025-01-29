@@ -1,11 +1,14 @@
-#ifndef __POOL_STRUCT_H__
-#define __POOL_STRUCT_H__
+#ifndef __POOL_2_STRUCT_H__
+#define __POOL_2_STRUCT_H__
 
 #include "header.h"
 
-STRUCT(pool)
+STRUCT(pool_2)
 {
-    int size, clean_frequency, ticks, count;
+    int size;
+    int clean_frequency;
+    int ticks;
+    int count;
     handler_p h;
 };
 

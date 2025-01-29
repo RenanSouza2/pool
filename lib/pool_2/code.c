@@ -14,16 +14,16 @@
 
 
 
-pool_t pool_global;
+pool_2_t pool_2_global;
 
-void pool_intialize(int size, int clean_frequency)
+void pool_2_intialize(int size, int clean_frequency)
 {
-    pool_global = (pool_t){size, clean_frequency, 0, 0, NULL};
+    pool_2_global = (pool_2_t){size, clean_frequency, 0, 0, NULL};
 }
 
-void pool_clean()
+void pool_2_clean()
 {
-    for(handler_p h = pool_global.h; h;)
+    for(handler_p h = pool_2_global.h; h;)
     {
         handler_p h_aux = NEXT(h);
         free(h);
@@ -31,43 +31,43 @@ void pool_clean()
     }
 }
 
-void pool_clean_half()
+void pool_2_clean_half()
 {
-    int clean = pool_global.count / 2;
-    pool_global.count -= clean;
+    int clean = pool_2_global.count / 2;
+    pool_2_global.count -= clean;
 
-    handler_p h = pool_global.h;
+    handler_p h = pool_2_global.h;
     for(int i=0; i<clean; i++)
     {
         handler_p h_aux = NEXT(h);
         free(h);
         h = h_aux;
     }
-    pool_global.h = h;
+    pool_2_global.h = h;
 }
 
 
 
-handler_p palloc()
+handler_p palloc_2()
 {
-    if(pool_global.h)
+    if(pool_2_global.h)
     {
-        handler_p h = pool_global.h;
-        pool_global.h = NEXT(h);
+        handler_p h = pool_2_global.h;
+        pool_2_global.h = NEXT(h);
         return h;
     }
 
-    handler_p h = calloc(1, pool_global.size);
+    handler_p h = calloc(1, pool_2_global.size);
     assert(h);
     return h;
 }
 
-void pfree(handler_p h)
+void pfree_2(handler_p h)
 {
-    NEXT(h) = pool_global.h;
-    pool_global.h = h;
+    NEXT(h) = pool_2_global.h;
+    pool_2_global.h = h;
 
-    pool_global.ticks++;
-    if(pool_global.ticks == pool_global.clean_frequency)
-        pool_clean_half();
+    pool_2_global.ticks++;
+    if(pool_2_global.ticks == pool_2_global.clean_frequency)
+        pool_2_clean_half();
 }
