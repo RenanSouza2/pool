@@ -5,6 +5,7 @@
 
 void pool_1_intialize(int size);
 void pool_1_clean();
+long pool_1_count();
 
 handler_p palloc_1();
 void pfree_1(handler_p h);

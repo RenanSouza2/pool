@@ -18,7 +18,8 @@ pool_1_t pool_1_global;
 
 void pool_1_intialize(int size)
 {
-    pool_1_global = (pool_1_t){size > sizeof(handler_p) ? size : sizeof(handler_p), NULL};
+    size = size > sizeof(handler_p) ? size : sizeof(handler_p);
+    pool_1_global = (pool_1_t){size, 0, NULL};
 }
 
 void pool_1_clean()
@@ -31,6 +32,11 @@ void pool_1_clean()
     }
 }
 
+long pool_1_count()
+{
+    return pool_1_global.count;
+}
+
 
 
 handler_p palloc_1()
@@ -39,6 +45,7 @@ handler_p palloc_1()
     {
         handler_p h = pool_1_global.h;
         pool_1_global.h = NEXT(h);
+        pool_1_global.count--;
         return h;
     }
 
@@ -51,4 +58,5 @@ void pfree_1(handler_p h)
 {
     NEXT(h) = pool_1_global.h;
     pool_1_global.h = h;
+    pool_1_global.count++;
 }

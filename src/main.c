@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <limits.h>
 #include <time.h>
 
@@ -10,13 +11,29 @@
 
 
 
+float p_rand()
+{
+    int ceiling = 1e6;
+    return (rand() % ceiling) / (float)ceiling;
+}
+
+float threshold(long n, long target)
+{
+    float _threshhold = 0.6 - 0.1 * n / (float)target;
+    return _threshhold > 0.1 ? _threshhold : 0.1;
+}
+
+
+
+typedef int64_t *int64_p;
+
 STRUCT(keep)
 {
-    handler_p h;
+    int64_p h;
     keep_p next;
 };
 
-keep_p keep_create(handler_p h, keep_p next)
+keep_p keep_create(int64_p h, keep_p next)
 {
     keep_p k = malloc(sizeof(keep_t));
     assert(k);
@@ -57,8 +74,7 @@ double my_time()
 float test_time_case(char *tag, alloc_t f_alloc, free_t f_free)
 {
     long lim = 1e10;
-    long target = 2e8;
-    int ceiling = 1e6;
+    long target = 1e8;
 
     printf("\n");
     long n = 0;
@@ -67,16 +83,17 @@ float test_time_case(char *tag, alloc_t f_alloc, free_t f_free)
     double start = my_time();
     for(long i=0; i<lim; i++)
     {
-        float p = (rand() % ceiling) / (float)ceiling;
-        float threshold = 0.6 - 0.2 * n / target;
+        float p = p_rand();
+        float _threshold = threshold(n, target);
 
-        long interval = 1e7;
-        if(i%interval == 0)
-            printf("\n%s %ld/%ld %ld %.2f", tag, i/interval, lim/interval, n, threshold);
+        long interval = lim / 10;
+        if(i%interval == interval - 1)
+            printf("\n%s %ld/%ld %ld %.2f", tag, (i+1)/interval, lim/interval, n, _threshold);
 
-        if(n == 0 || (p < threshold))
+        if(n == 0 || (p < _threshold))
         {
-            handler_p h = f_alloc();
+            int64_p h = f_alloc();
+            *h = rand();
             k = keep_create(h, k);
             n++;
             
@@ -117,33 +134,47 @@ void test_time()
 
 
 
-void test_space(char *tag, alloc_t f_alloc, free_t f_free)
+typedef long (*count_t)();
+
+long test_space_case(char *tag, alloc_t f_alloc, free_t f_free, count_t f_count)
 {
-    long lim = 1e10;
-    long target = 2e8;
-    int ceiling = 1e6;
+    long lim = 1e9;
+    long target = 1e8;
 
     printf("\n");
-    long n = 0;
     keep_p k = NULL;
+    for(long i=0; i<target; i++)
+    {
+        int64_p h = f_alloc();
+        *h = rand();
+        k = keep_create(h, k);
+    }
+
+    long tot = 0;
+
+    long n = target;
+    target /= 10;
     for(long i=0; i<lim; i++)
     {
-        float p = (rand() % ceiling) / (float)ceiling;
-        float threshold = 0.6 - 0.2 * n / target;
+        float p = p_rand();
+        float _threshold = threshold(n, target);
 
-        long interval = 1e7;
-        if(i%interval == 0)
-            printf("\n%s %ld/%ld %ld %.2f", tag, i/interval, lim/interval, n, threshold);
+        long interval = lim / 100;
+        if(i%interval == interval - 1)
+            printf("\n%s %ld/%ld %ld %.2f", tag, (i+1)/interval, lim/interval, n, _threshold);
 
-        if(n == 0 || (p < threshold))
+        tot += f_count();
+        
+        if(n == 0 || (p < _threshold))
         {
-            handler_p h = f_alloc();
+            int64_p h = f_alloc();
+            *h = rand();
             k = keep_create(h, k);
             n++;
             
             continue;
         }
-        
+
         handler_p h = k->h;
         f_free(h);
 
@@ -152,7 +183,19 @@ void test_space(char *tag, alloc_t f_alloc, free_t f_free)
         k = k_next;
         n--;
     }
-    return k;
+    keep_free(k);
+
+    return tot;
+}
+
+void test_space()
+{
+    pool_1_intialize(8);
+    long p1_res = test_space_case("pool 1", palloc_1, pfree_1, pool_1_count);
+    pool_1_clean();
+
+    printf("\n");
+    printf("\npool 1: %ld", p1_res);
 }
 
 
@@ -164,7 +207,8 @@ int main(int argc, char** argv)
 
     srand(time(NULL));
 
-    test_time();
+    // test_time();
+    test_space();
     
     printf("\n");
     return 0;
@@ -175,3 +219,7 @@ int main(int argc, char** argv)
 // time malloc  : 325.594
 // time palloc 1: 294.143
 // time palloc 2: 290.207
+
+// time malloc  : 394.512
+// time palloc 1: 361.110
+// time palloc 2: 364.566

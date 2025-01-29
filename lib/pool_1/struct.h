@@ -6,6 +6,7 @@
 STRUCT(pool_1)
 {
     int size;
+    long count;
     handler_p h;
 };
 
