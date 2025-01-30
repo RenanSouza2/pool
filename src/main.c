@@ -315,7 +315,7 @@ int main(int argc, char** argv)
     srand(time(NULL));
 
     // test_time();
-    // test_space_decreasing();
+    test_space_decreasing();
     test_space_rising();
     
     printf("\n");
