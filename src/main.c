@@ -245,7 +245,7 @@ void test_space_decreasing()
     printf("\n");
     printf("\npool 1: %ld", p1_res);
     printf("\npool 2: %ld", p2_res);
-    printf("\nratio : %ld", p1_res / p2_res);
+    printf("\nratio : %.3f", (float) p1_res / p2_res);
 }
 
 long test_space_rising_case(char *tag, lib_t lib)
@@ -302,7 +302,7 @@ void test_space_rising()
     printf("\n");
     printf("\npool 1: %ld", p1_res);
     printf("\npool 2: %ld", p2_res);
-    printf("\nratio : %ld", p1_res / p2_res);
+    printf("\nratio : %.3f", (float) p1_res / p2_res);
 }
 
 
@@ -316,7 +316,7 @@ int main(int argc, char** argv)
 
     // test_time();
     // test_space_decreasing();
-    // test_space_rising();
+    test_space_rising();
     
     printf("\n");
     return 0;
