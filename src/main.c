@@ -58,11 +58,63 @@ void keep_free(keep_p k)
 
 typedef handler_p (*alloc_t)();
 typedef void (*free_t)(handler_p);
+typedef void (*setup_f)();
+typedef long (*count_t)();
 
 handler_p my_malloc()
 {
     return malloc(8);
 }
+
+void null_setup() {}
+
+void pool_1_setup()
+{
+    pool_1_intialize(8);
+}
+
+void pool_2_setup()
+{
+    pool_2_intialize(8, 1e6);
+}
+
+STRUCT(lib)
+{
+    alloc_t f_alloc;
+    free_t f_free;
+    setup_f f_setup;
+    setup_f f_clean;
+    count_t f_count;
+};
+
+lib_t lib_malloc = (lib_t)
+{
+    my_malloc,
+    free,
+    null_setup,
+    null_setup,
+    NULL
+};
+
+lib_t lib_pool_1 = (lib_t)
+{
+    palloc_1,
+    pfree_1,
+    pool_1_setup,
+    pool_1_clean,
+    pool_1_count
+};
+
+lib_t lib_pool_2 = (lib_t)
+{
+    palloc_2,
+    pfree_2,
+    pool_2_setup,
+    pool_2_clean,
+    pool_2_count
+};
+
+
 
 double my_time()
 {
@@ -71,7 +123,7 @@ double my_time()
     return now.tv_sec + now.tv_nsec*1e-9;
 }
 
-float test_time_case(char *tag, alloc_t f_alloc, free_t f_free)
+float test_time_case(char *tag, lib_t lib)
 {
     long lim = 1e10;
     long target = 1e8;
@@ -80,6 +132,7 @@ float test_time_case(char *tag, alloc_t f_alloc, free_t f_free)
     long n = 0;
     keep_p k = NULL;
     
+    lib.f_setup();
     double start = my_time();
     for(long i=0; i<lim; i++)
     {
@@ -92,7 +145,7 @@ float test_time_case(char *tag, alloc_t f_alloc, free_t f_free)
 
         if(n == 0 || (p < _threshold))
         {
-            int64_p h = f_alloc();
+            int64_p h = lib.f_alloc();
             *h = rand();
             k = keep_create(h, k);
             n++;
@@ -101,7 +154,7 @@ float test_time_case(char *tag, alloc_t f_alloc, free_t f_free)
         }
 
         handler_p h = k->h;
-        f_free(h);
+        lib.f_free(h);
 
         keep_p k_next = k->next;
         free(k);
@@ -110,42 +163,37 @@ float test_time_case(char *tag, alloc_t f_alloc, free_t f_free)
     }
     double end = my_time();
     keep_free(k);
+    lib.f_clean();
 
     return end - start;
 }
 
 void test_time()
 {
-    double time_malloc = test_time_case("malloc", my_malloc, free);
-
-    pool_1_intialize(8);
-    double time_palloc_1 = test_time_case("palloc_1", palloc_1, pfree_1);
-    pool_1_clean();
-
-    pool_2_intialize(8, 1e6);
-    double time_palloc_2 = test_time_case("palloc_2", palloc_2, pfree_2);
-    pool_2_clean();
+    // double time_malloc = test_time_case("malloc", lib_malloc);
+    // double time_palloc_1 = test_time_case("palloc_1", lib_pool_1);
+    double time_palloc_2 = test_time_case("palloc_2", lib_pool_2);
 
     printf("\n");
-    printf("\ntime malloc  : %.3f", time_malloc);
-    printf("\ntime palloc 1: %.3f", time_palloc_1);
+    // printf("\ntime malloc  : %.3f", time_malloc);
+    // printf("\ntime palloc 1: %.3f", time_palloc_1);
     printf("\ntime palloc 2: %.3f", time_palloc_2);
 }
 
 
 
-typedef long (*count_t)();
-
-long test_space_case(char *tag, alloc_t f_alloc, free_t f_free, count_t f_count)
+long test_space_decreasing_case(char *tag, lib_t lib)
 {
     long lim = 1e9;
     long target = 1e8;
+
+    lib.f_setup();
 
     printf("\n");
     keep_p k = NULL;
     for(long i=0; i<target; i++)
     {
-        int64_p h = f_alloc();
+        int64_p h = lib.f_alloc();
         *h = rand();
         k = keep_create(h, k);
     }
@@ -159,15 +207,15 @@ long test_space_case(char *tag, alloc_t f_alloc, free_t f_free, count_t f_count)
         float p = p_rand();
         float _threshold = threshold(n, target);
 
-        long interval = lim / 100;
+        long interval = lim / 10;
         if(i%interval == interval - 1)
             printf("\n%s %ld/%ld %ld %.2f", tag, (i+1)/interval, lim/interval, n, _threshold);
 
-        tot += f_count();
+        tot += lib.f_count();
         
         if(n == 0 || (p < _threshold))
         {
-            int64_p h = f_alloc();
+            int64_p h = lib.f_alloc();
             *h = rand();
             k = keep_create(h, k);
             n++;
@@ -176,7 +224,65 @@ long test_space_case(char *tag, alloc_t f_alloc, free_t f_free, count_t f_count)
         }
 
         handler_p h = k->h;
-        f_free(h);
+        lib.f_free(h);
+
+        keep_p k_next = k->next;
+        free(k);
+        k = k_next;
+        n--;
+    }
+    keep_free(k);
+    lib.f_clean();
+
+    return tot;
+}
+
+void test_space_decreasing()
+{
+    long p1_res = test_space_decreasing_case("pool 1", lib_pool_1);
+    long p2_res = test_space_decreasing_case("pool 2", lib_pool_2);
+
+    printf("\n");
+    printf("\npool 1: %ld", p1_res);
+    printf("\npool 2: %ld", p2_res);
+    printf("\nratio : %ld", p1_res / p2_res);
+}
+
+long test_space_rising_case(char *tag, lib_t lib)
+{
+    long lim = 1e9;
+    long target = 1e8;
+
+    lib.f_setup();
+
+    printf("\n");
+    long n = 0;
+    long tot = 0;
+    keep_p k = NULL;
+
+    for(long i=0; i<lim; i++)
+    {
+        float p = p_rand();
+        float _threshold = threshold(n, target);
+
+        long interval = lim / 10;
+        if(i%interval == interval - 1)
+            printf("\n%s %ld/%ld %ld %.2f", tag, (i+1)/interval, lim/interval, n, _threshold);
+
+        tot += lib.f_count();
+        
+        if(n == 0 || (p < _threshold))
+        {
+            int64_p h = lib.f_alloc();
+            *h = rand();
+            k = keep_create(h, k);
+            n++;
+            
+            continue;
+        }
+
+        handler_p h = k->h;
+        lib.f_free(h);
 
         keep_p k_next = k->next;
         free(k);
@@ -188,14 +294,15 @@ long test_space_case(char *tag, alloc_t f_alloc, free_t f_free, count_t f_count)
     return tot;
 }
 
-void test_space()
+void test_space_rising()
 {
-    pool_1_intialize(8);
-    long p1_res = test_space_case("pool 1", palloc_1, pfree_1, pool_1_count);
-    pool_1_clean();
+    long p1_res = test_space_rising_case("pool 1", lib_pool_1);
+    long p2_res = test_space_rising_case("pool 2", lib_pool_2);
 
     printf("\n");
     printf("\npool 1: %ld", p1_res);
+    printf("\npool 2: %ld", p2_res);
+    printf("\nratio : %ld", p1_res / p2_res);
 }
 
 
@@ -208,18 +315,9 @@ int main(int argc, char** argv)
     srand(time(NULL));
 
     // test_time();
-    test_space();
+    // test_space_decreasing();
+    // test_space_rising();
     
     printf("\n");
     return 0;
 }
-
-
-
-// time malloc  : 325.594
-// time palloc 1: 294.143
-// time palloc 2: 290.207
-
-// time malloc  : 394.512
-// time palloc 1: 361.110
-// time palloc 2: 364.566

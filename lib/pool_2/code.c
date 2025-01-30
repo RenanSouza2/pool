@@ -33,11 +33,11 @@ void pool_2_clean()
 
 void pool_2_clean_half()
 {
-    int clean = pool_2_global.count / 2;
+    long clean = pool_2_global.count / 2;
     pool_2_global.count -= clean;
 
     handler_p h = pool_2_global.h;
-    for(int i=0; i<clean; i++)
+    for(long i=0; i<clean; i++)
     {
         handler_p h_aux = NEXT(h);
         free(h);
@@ -46,6 +46,10 @@ void pool_2_clean_half()
     pool_2_global.h = h;
 }
 
+long pool_2_count()
+{
+    return pool_2_global.count;
+}
 
 
 handler_p palloc_2()
@@ -54,6 +58,7 @@ handler_p palloc_2()
     {
         handler_p h = pool_2_global.h;
         pool_2_global.h = NEXT(h);
+        pool_2_global.count--;
         return h;
     }
 
@@ -66,8 +71,14 @@ void pfree_2(handler_p h)
 {
     NEXT(h) = pool_2_global.h;
     pool_2_global.h = h;
+    pool_2_global.count++;
 
     pool_2_global.ticks++;
     if(pool_2_global.ticks == pool_2_global.clean_frequency)
-        pool_2_clean_half();
+    {
+        pool_2_global.ticks = 0;
+
+        if(pool_2_global.count > 1000)
+            pool_2_clean_half();
+    }
 }

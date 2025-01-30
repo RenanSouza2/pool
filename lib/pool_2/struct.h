@@ -8,7 +8,7 @@ STRUCT(pool_2)
     int size;
     int clean_frequency;
     int ticks;
-    int count;
+    long count;
     handler_p h;
 };
 
