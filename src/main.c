@@ -170,13 +170,13 @@ float test_time_case(char *tag, lib_t lib)
 
 void test_time()
 {
-    // double time_malloc = test_time_case("malloc", lib_malloc);
-    // double time_palloc_1 = test_time_case("palloc_1", lib_pool_1);
+    double time_malloc = test_time_case("malloc", lib_malloc);
+    double time_palloc_1 = test_time_case("palloc_1", lib_pool_1);
     double time_palloc_2 = test_time_case("palloc_2", lib_pool_2);
 
     printf("\n");
-    // printf("\ntime malloc  : %.3f", time_malloc);
-    // printf("\ntime palloc 1: %.3f", time_palloc_1);
+    printf("\ntime malloc  : %.3f", time_malloc);
+    printf("\ntime palloc 1: %.3f", time_palloc_1);
     printf("\ntime palloc 2: %.3f", time_palloc_2);
 }
 
@@ -314,9 +314,9 @@ int main(int argc, char** argv)
 
     srand(time(NULL));
 
-    // test_time();
-    test_space_decreasing();
-    test_space_rising();
+    test_time();
+    // test_space_decreasing();
+    // test_space_rising();
     
     printf("\n");
     return 0;

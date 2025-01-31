@@ -53,7 +53,7 @@ void test_pool_1()
     printf("\n%s", __func__);
 
     test_pool_1_palloc();
-    test_pool_1_pfree(true);
+    test_pool_1_pfree(false);
 
     assert(clu_mem_empty());
 }

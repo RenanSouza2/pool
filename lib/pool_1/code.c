@@ -19,7 +19,6 @@ pool_1_t pool_1_global;
 void pool_1_intialize(int size)
 {
     pthread_mutex_init(&pool_1_global.lock, NULL);
-    size = size > sizeof(handler_p) ? size : sizeof(handler_p);
     pool_1_global = (pool_1_t){size, 0, NULL};
 }
 
@@ -38,9 +37,7 @@ void pool_1_clean()
 
 long pool_1_count()
 {
-    pthread_mutex_lock(&pool_1_global.lock);
     return pool_1_global.count;
-    pthread_mutex_unlock(&pool_1_global.lock);
 }
 
 

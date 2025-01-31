@@ -1,6 +1,8 @@
 #ifndef __POOL_2_STRUCT_H__
 #define __POOL_2_STRUCT_H__
 
+#include <pthread.h>
+
 #include "header.h"
 
 STRUCT(pool_2)
@@ -10,6 +12,7 @@ STRUCT(pool_2)
     int ticks;
     long count;
     handler_p h;
+    pthread_mutex_t lock;
 };
 
 #endif
